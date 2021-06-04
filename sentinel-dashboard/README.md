@@ -10,6 +10,7 @@ add by houlu 2021-06-04
 1. 若需指定nacos服务器，需修改`NacosConfig` 中的ip，最好通过配置文件获取
 2. 若需指定nacos服务器端口，则需在启动jar时指定参数：`-Dnacos.server.port=8849` 。代码在`com.alibaba.nacos.client.config.impl.ServerListManager` 第123行
 
+nacos 作为配置服务器，注意各个元数据隔离性  
 
 ## 1. 编译和启动
 
