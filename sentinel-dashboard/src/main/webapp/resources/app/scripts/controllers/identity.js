@@ -1,10 +1,10 @@
 var app = angular.module('sentinelDashboardApp');
 
 app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
-  'ngDialog', 'FlowServiceV1', 'DegradeService', 'AuthorityRuleService', 'ParamFlowService', 'MachineService',
+  'ngDialog', 'FlowServiceV1','FlowServiceV2', 'DegradeService', 'AuthorityRuleService', 'ParamFlowService', 'MachineService',
   '$interval', '$location', '$timeout',
   function ($scope, $stateParams, IdentityService, ngDialog,
-    FlowService, DegradeService, AuthorityRuleService, ParamFlowService, MachineService, $interval, $location, $timeout) {
+            FlowService, FlowServiceV2, DegradeService, AuthorityRuleService, ParamFlowService, MachineService, $interval, $location, $timeout) {
 
     $scope.app = $stateParams.app;
 
@@ -39,6 +39,8 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
 
     var flowRuleDialog;
     var flowRuleDialogScope;
+
+    // flow rule v1
     $scope.addNewFlowRule = function (resource) {
       if (!$scope.macInputModel) {
         return;
@@ -118,7 +120,86 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
       });
     }
 
-    var degradeRuleDialog;
+      // add by houlu 2021-06-04 19:52:41  新增 同步nacos配置
+      $scope.addNewFlowRuleNacos = function (resource) {
+          if (!$scope.macInputModel) {
+              return;
+          }
+          var mac = $scope.macInputModel.split(':');
+          flowRuleDialogScope = $scope.$new(true);
+          flowRuleDialogScope.currentRule = {
+              enable: false,
+              strategy: 0,
+              grade: 1,
+              controlBehavior: 0,
+              resource: resource,
+              limitApp: 'default',
+              clusterMode: false,
+              clusterConfig: {
+                  thresholdType: 0
+              },
+              app: $scope.app,
+              ip: mac[0],
+              port: mac[1]
+          };
+
+          flowRuleDialogScope.flowRuleDialog = {
+              title: '新增流控规则Nacos',
+              type: 'add',
+              confirmBtnText: '新增',
+              saveAndContinueBtnText: '新增并继续添加',
+              showAdvanceButton: true
+          };
+
+          flowRuleDialogScope.saveRule = saveFlowRuleNacos ;
+          flowRuleDialogScope.saveRuleAndContinue = saveFlowRuleAndContinueNacos ;
+          flowRuleDialogScope.onOpenAdvanceClick = function () {
+              flowRuleDialogScope.flowRuleDialog.showAdvanceButton = false;
+          };
+          flowRuleDialogScope.onCloseAdvanceClick = function () {
+              flowRuleDialogScope.flowRuleDialog.showAdvanceButton = true;
+          };
+
+          flowRuleDialog = ngDialog.open({
+              template: '/app/views/dialog/flow-rule-dialog.html',
+              width: 680,
+              overlay: true,
+              scope: flowRuleDialogScope
+          });
+      };
+
+      function saveFlowRuleNacos() {
+          if (!FlowServiceV2.checkRuleValid(flowRuleDialogScope.currentRule)) {
+              return;
+          }
+          FlowServiceV2.newRule(flowRuleDialogScope.currentRule).success(function (data) {
+              if (data.code === 0) {
+                  flowRuleDialog.close();
+                  let url = '/dashboard/flow/' + $scope.app;
+                  $location.path(url);
+              } else {
+                  alert('失败!');
+              }
+          }).error((data, header, config, status) => {
+              alert('未知错误');
+          });
+      }
+
+      function saveFlowRuleAndContinueNacos() {
+          if (!FlowServiceV2.checkRuleValid(flowRuleDialogScope.currentRule)) {
+              return;
+          }
+          FlowServiceV2.newRule(flowRuleDialogScope.currentRule).success(function (data) {
+              if (data.code == 0) {
+                  flowRuleDialog.close();
+              } else {
+                  alert('失败!');
+              }
+          });
+      }
+
+
+      var degradeRuleDialog;
     var degradeRuleDialogScope;
     $scope.addNewDegradeRule = function (resource) {
       if (!$scope.macInputModel) {

@@ -22,7 +22,9 @@ import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,26 +48,30 @@ public class AuthController {
     @Value("${auth.password:sentinel}")
     private String authPassword;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @PostMapping("/login")
     public Result login(HttpServletRequest request, String username, String password) {
-        if (StringUtils.isNotBlank(DashboardConfig.getAuthUsername())) {
-            authUsername = DashboardConfig.getAuthUsername();
-        }
 
-        if (StringUtils.isNotBlank(DashboardConfig.getAuthPassword())) {
-            authPassword = DashboardConfig.getAuthPassword();
-        }
+        /**
+         * add by LuHou
+         * @Date: 2021/6/4
+         * @Description :
+         *    自定义登录账号、密码
+         */
+        Integer res = jdbcTemplate.queryForObject("select count(1) cnt from saaf_middleware_config  t where t.mtype=?  and t.username=? and t.password=? ", new String[]{"sentinel", username, password}, Integer.class);
 
         /*
          * If auth.username or auth.password is blank(set in application.properties or VM arguments),
          * auth will pass, as the front side validate the input which can't be blank,
          * so user can input any username or password(both are not blank) to login in that case.
          */
-        if (StringUtils.isNotBlank(authUsername) && !authUsername.equals(username)
-                || StringUtils.isNotBlank(authPassword) && !authPassword.equals(password)) {
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(password) || res < 1 ) {
             LOGGER.error("Login failed: Invalid username or password, username=" + username + ", password=" + password);
             return Result.ofFail(-1, "Invalid username or password");
         }
+
 
         AuthService.AuthUser authUser = new SimpleWebAuthServiceImpl.SimpleWebAuthUserImpl(username);
         request.getSession().setAttribute(SimpleWebAuthServiceImpl.WEB_SESSTION_KEY, authUser);

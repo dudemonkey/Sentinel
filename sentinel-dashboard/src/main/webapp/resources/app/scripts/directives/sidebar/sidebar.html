@@ -38,11 +38,13 @@
             <a ui-sref="dashboard.gatewayIdentity({app: entry.app})">
               <i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;请求链路</a>
           </li>
+<!-- add by houlu 2021年06月04日20:10:08 实际调用的v2 -->
+<!-- -->
+          <li ui-sref-active="active" ng-if="entry.appType==0">
+            <a ui-sref="dashboard.flow({app: entry.app})">
+              <i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;流控规则-Nacos</a>
+          </li>
 
-          <!--<li ui-sref-active="active" ng-if="entry.appType==0">-->
-            <!--<a ui-sref="dashboard.flow({app: entry.app})">-->
-              <!--<i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;流控规则 V1</a>-->
-          <!--</li>-->
 
           <li ui-sref-active="active" ng-if="entry.isGateway">
             <a ui-sref="dashboard.gatewayApi({app: entry.app})">
@@ -52,15 +54,15 @@
             <a ui-sref="dashboard.gatewayFlow({app: entry.app})">
               <i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;流控规则</a>
           </li>
-
+<!--
           <li ui-sref-active="active" ng-if="!entry.isGateway">
             <a ui-sref="dashboard.flowV1({app: entry.app})">
-              <i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;流控规则</a>
+              <i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;流控规则-Nacos</a>
           </li>
-
+-->
           <li ui-sref-active="active">
             <a ui-sref="dashboard.degrade({app: entry.app})">
-              <i class="glyphicon glyphicon-flash"></i>&nbsp;&nbsp;降级规则</a>
+              <i class="glyphicon glyphicon-flash"></i>&nbsp;&nbsp;降级规则-Nacos</a>
           </li>
           <li ui-sref-active="active" ng-if="!entry.isGateway">
             <a ui-sref="dashboard.paramFlow({app: entry.app})">
